@@ -21,6 +21,11 @@ while True:
                 except:
                     l.append(j)
             x["horarios"][i]=l
+    w = input("Grupos: ")
+    p = []
+    for j in w.split(','):
+        p.append(j)
+        x["grupos"]=p
     print(x)
     print(json.dumps(x))
     with open('maestros.json', 'a') as f:
