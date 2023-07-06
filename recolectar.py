@@ -2,8 +2,9 @@ import json
 while True:
     x={
         "nombre":input("nombre: "),
+        "materia":input("materia: "),
         "horas_grupo":int(input("horas_grupo: ")),
-        "horas_servicio":int(input("horas_grupo: ")),
+        "horas_servicio":int(input("horas_servicio: ")),
         "p":(True if len(input("p: "))!=0 else False),
         "horarios":{}
         }

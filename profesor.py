@@ -20,6 +20,30 @@ file.close()
 profesores=[]
 
 for i in obj["maestros"]:
-    p = json.dumps(i)
-    pp = json.loads(p,object_hook=prefesor)
-    profesores.append(pp)
+    total = i["horas_grupo"] +i["horas_servicio"]
+    print(f"El Total de horas para el profesor {i['nombre']} es de {total}")
+    y = input("es esto correcto?: ")
+    if len(y)==0:
+        i["tutoria"]=None
+        i["total"]=total
+    else:
+        i["total"]=input("Ingrese nuevo total")
+        i["tutoria"]=y
+    #p = json.dumps(i)
+    #pp = json.loads(p,object_hook=prefesor)
+    #profesores.append(pp)
+with open("maestros_final.json", "w") as f:
+    print(json.dumps(obj),file=f)
+
+
+maestros = []
+materias = []
+for i in profesores:
+    if i.nombre not in maestros:
+        maestros.append(i.nombre)
+    else:
+        print(f"Maestro Repetido {i.nombre}")
+    if i.horas_grupo<=0: print(f"Profesor {i.nombre} tiene horas de grupo invalidas")
+    if i.materia not in materias:
+        materias.append(i.materia)
+print(materias)
