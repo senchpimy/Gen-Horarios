@@ -1,6 +1,7 @@
 from collections import namedtuple
 from json import JSONEncoder
 import json
+from os import confstr
 import pprint
 
 def prefesor(Dict):
@@ -44,6 +45,8 @@ for i in obj["maestros"]:
 maestros = []
 materias = {}
 for i in profesores:
+    if i.materia==None:
+        continue
     if i.nombre not in maestros:
         maestros.append(i.nombre)
     else:
@@ -53,7 +56,7 @@ for i in profesores:
         materias[i.materia]=1
     else:
         materias[i.materia]+=1
-    if i.total-(i.horas_grupo+i.horas_servicio)>2:
+    if i.total-(i.horas_grupo+i.horas_servicio+(1 if i.tutoria!=None else 0))!=0:
         print(f'EL profesor {i.nombre} tiene errores en las horas')
 print(materias)
 print()
@@ -66,8 +69,51 @@ for i in grupos:
         if i in j.grupos:
             grupos_maestro[i][j.materia]=j.nombre
 
-#pprint.pprint(grupos_maestro)
+pprint.pprint(grupos_maestro)
 for i in grupos_maestro:
-    print(f'El grupo {i} tiene {len(grupos_maestro[i])} materias : ',end="")
-    print(*grupos_maestro[i].keys())
+    val = f"""
+	{{\\huge \\textbf{{{i}}}}}
+  \\begin{{center}}
+\\begin{{tabular}}{{||c c c c c c||}} 
+ \\hline
+  Horas & Lunes & Martes  & Miercoles & Jueves & Viernes\\\\ [1ex] 
+ \\hline\\hline
+  7:30-8:20 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
+ \\hline
+   8:20-9:10 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
+ \\hline
+   9:10-10:00 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
+ \\hline
+   10:00-10:50 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
+ \\hline
+   11:10-12:00 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
+ \\hline
+   12:00-12:50 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
+ \\hline
+   12:50-13:40 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
+ \\hline
+\\end{{tabular}}
+\\end{{center}}
+    """
+    val2 = ""
+    for j in grupos_maestro[i]:
+        #print(j)
+        val2 += f"""
+        \\textbf{{{j}: }}{grupos_maestro[i][j]}\\\\
+        """
+    val2+="\\pagebreak"
+    #print(val+val2)
+    #print(grupos_maestro[i])
 
+for i in profesores:
+    _=1
+    if len(i.grupos)==1:continue
+    #if i.horas_grupo%len(i.grupos)>0: print(i)
+    #print(i.horas_grupo/len(i.grupos))
+    #print(f'El grupo {i} tiene {len(grupos_maestro[i])} materias : ',end="")
+    #print(*grupos_maestro[i].keys())
+
+#for i in profesores:
+ #   if i.tutoria != None: print(i.nombre,i.tutoria)
+
+#pprint.pprint(grupos_maestro["1A"])
