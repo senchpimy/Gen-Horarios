@@ -56,7 +56,7 @@ materias = []
 
 # Escojemos los maestros de 1A
 for i in Profs:
-    if "1A" in i.grupos:
+    if "1B" in i.grupos:
         maestros1A.append(i)
 # Calculamos cuantas horas son por semana
 horas_materia = {}
@@ -93,4 +93,20 @@ print_horario(horario_posible_maestros)
 # Acomodamos a los que tienen preferencia
 for maestro in maestros1A:
     for dia in horario_posible_maestros:
-        if maestro.p:
+        if maestro.nombre in horario_posible_maestros[dia] and maestro.p:
+            hora = horario_posible_maestros[dia].index(maestro.nombre) + 1 # hora en la que esta elmaestro
+            if hora not in maestro.horarios[dia_to_num(dia)]:
+                seleccion = 0
+                while True: # Emepzamos un loop para buscar al maestro con el cual cambiar, este no debe tener preferencia
+                    nuevo_indice = maestro.horarios[dia_to_num(dia)][seleccion]-1 # Seleccionamos una hora de los que el maestro prefiere
+                    maestro_int = horario_posible_maestros[dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
+                    result = list(filter(lambda person: person.nombre == maestro_int, maestros1A))
+                    if not result[0].p: #Si no tiene preferencia lo encontramos y terminamos el loop
+                        break
+                    seleccion+=1
+
+                horario_posible_maestros[dia][nuevo_indice],horario_posible_maestros[dia][hora-1] = maestro.nombre ,maestro_int # Se hace el intercambio con el profresor
+                print(hora-1,nuevo_indice)
+
+            print(maestro.nombre,dia,hora)
+print_horario(horario_posible_maestros)
