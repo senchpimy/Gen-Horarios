@@ -66,10 +66,20 @@ def print_horario(d):
 
 maestros1A = []
 materias = []
+horarios_maestros={}
+for i in Profs:
+    horarios_maestros[i.nombre]={
+            "Lunes":["" for _ in range(7)],
+            "Martes":["" for _ in range(7)],
+            "Miercoles":["" for _ in range(7)],
+            "Jueves":["" for _ in range(7)],
+            "Viernes":["" for _ in range(7)]
+            }
+
 
 # Escojemos los maestros de 1A
 for i in Profs:
-    if "1B" in i.grupos:
+    if "1A" in i.grupos:
         maestros1A.append(i)
 # Calculamos cuantas horas son por semana
 horas_materia = {}
@@ -148,6 +158,7 @@ for maestro in maestros1A:
                             if seleccion==len(maestro.horarios[dia_to_num(tmp_dia)]): # Si se llego al limite del los dias intentamos buscar el dia siguiente
                                 seleccion=-1
                                 tmp_dia=num_to_dia(dia_to_num(tmp_dia)+1) #Avanzamos el dia 
+                                if tmp_dia==None:break
                             seleccion+=1
 
                         horario_posible_maestros[tmp_dia][nuevo_indice],horario_posible_maestros[dia][hora-1] = maestro.nombre ,maestro_int # Se hace el intercambio con el profresor
@@ -170,18 +181,28 @@ for maestro in maestros1A:
                             if seleccion==len(maestro.horarios[dia_to_num(tmp_dia)]): # Si se llego al limite del los dias intentamos buscar el dia siguiente
                                 seleccion=-1
                                 tmp_dia=num_to_dia(dia_to_num(tmp_dia)+1) #Avanzamos el dia 
+                                if tmp_dia==None:break
                             seleccion+=1
 
                         horario_posible_maestros[tmp_dia][nuevo_indice],horario_posible_maestros[dia][hora-1] = maestro.nombre ,maestro_int # Se hace el intercambio con el profresor
                         horario_posible[tmp_dia][nuevo_indice],horario_posible[dia][hora-1] = maestro.materia ,materia_int # Se hace el intercambio de la materia
 #                print(hora-1,nuevo_indice)
-
 #            print(maestro.nombre,dia,hora)
 
+# Mapeamos los resultados a los horarios de los maestros
 
-
+for dia in horario_posible_maestros:
+    for hora,maestro in enumerate(horario_posible_maestros[dia]):
+        print(hora, maestro)
+        if maestro!='':
+            horarios_maestros[maestro][dia][hora]+="1A"
 
 print_horario(horario_posible_maestros)
 print_horario(horario_posible)
+
+for p in horarios_maestros:
+    print(p)
+    print_horario(horarios_maestros[p])
+    pass
 
 
