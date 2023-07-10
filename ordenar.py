@@ -225,7 +225,7 @@ for p in horarios_maestros:
     print_horario(horarios_maestros[p])
 #    pass
 
-#for p in horarios_grupo:
-#    print(p)
-#    print_horario(horarios_grupo[p])
+for p in horarios_grupo:
+    print(p)
+    print_horario(horarios_grupo[p])
 #
