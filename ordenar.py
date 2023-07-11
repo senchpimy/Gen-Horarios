@@ -150,63 +150,63 @@ for grupo in ["1A","1B","1C","1D","1E","1F","1G","2A","2B","2C","2D","2E","2F","
                         horario_posible[tmp_dia][nuevo_indice],horario_posible[dia][hora-1] = maestro.materia ,materia_int # Se hace el intercambio de la materia
                     except: pass
     
-            elif maestro.nombre in horario_posible_maestros[dia]: # Intentamos ordenar al resto de los maestros
-                hora = horario_posible_maestros[dia].index(maestro.nombre) + 1 # hora en la que esta el maestro
-                if hora not in maestro.horarios[dia_to_num(dia)]: # Buscamos si la hora no esta en las horas que escojio el maestro
-                    if hora>max(maestro.horarios[dia_to_num(dia)]):
-                        diff = hora-max(maestro.horarios[dia_to_num(dia)])
-                        if diff>1: # Buscamos si la diferencia es lo suficiente para mover
-                            print("ordenar: ",maestro.nombre,hora, maestro.horarios[dia_to_num(dia)])
-                            seleccion = 0
-                            tmp_dia = dia #Creamos el dia para poder luego inentar el siguiente dia
-                            while True: # Emepzamos un loop para buscar al maestro con el cual cambiar, este no debe tener preferencia
-                                nuevo_indice = maestro.horarios[dia_to_num(tmp_dia)][seleccion]-1 # Seleccionamos una hora de los que el maestro prefiere
-                                try:
-                                    maestro_int = horario_posible_maestros[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
-                                except:
-                                    nuevo_indice-=1 # TODO: que no se este usando el indice negativo
-                                    break
-                                materia_int = horario_posible[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
-                                result = list(filter(lambda person: person.nombre == maestro_int, maestros1A))
-                                if not result[0].p and hora in result[0].horarios[dia_to_num(dia)] : #Si no tiene preferencia lo encontramos y terminamos el loop
-                                    break
-    
-                                seleccion+=1
-                                if seleccion==len(maestro.horarios[dia_to_num(tmp_dia)]): # Si se llego al limite del los dias intentamos buscar el dia siguiente
-                                    seleccion=0
-                                    tmp_dia=num_to_dia(dia_to_num(tmp_dia)+1) #Avanzamos el dia 
-                                    if tmp_dia==None:break
-    
-                            horario_posible_maestros[tmp_dia][nuevo_indice],horario_posible_maestros[dia][hora-1] = maestro.nombre ,maestro_int # Se hace el intercambio con el profresor
-                            horario_posible[tmp_dia][nuevo_indice],horario_posible[dia][hora-1] = maestro.materia ,materia_int # Se hace el intercambio de la materia
-                    elif hora<min(maestro.horarios[dia_to_num(dia)]):
-                        diff = min(maestro.horarios[dia_to_num(dia)])-hora
-                        if diff>1: # Buscamos si la diferencia es lo suficiente para mover
-                            print(maestro.nombre, "HOAOOAOL",hora, maestro.horarios[dia_to_num(dia)])
-                            seleccion = 0
-                            tmp_dia = dia #Creamos el dia para poder luego inentar el siguiente dia
-                            while True: # Emepzamos un loop para buscar al maestro con el cual cambiar, este no debe tener preferencia
-                                nuevo_indice = maestro.horarios[dia_to_num(tmp_dia)][seleccion]-1 # Seleccionamos una hora de los que el maestro prefiere
-                                try: 
-                                    maestro_int = horario_posible_maestros[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
-                                except:
-                                    nuevo_indice=-1
-                                    break
-                                materia_int = horario_posible[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
-                                result = list(filter(lambda person: person.nombre == maestro_int, maestros1A))
-                                if not result[0].p and hora in result[0].horarios[dia_to_num(dia)] : #Si no tiene preferencia lo encontramos y terminamos el loop
-                                    break
-    
-                                if seleccion==len(maestro.horarios[dia_to_num(tmp_dia)]): # Si se llego al limite del los dias intentamos buscar el dia siguiente
-                                    seleccion=-1
-                                    tmp_dia=num_to_dia(dia_to_num(tmp_dia)+1) #Avanzamos el dia 
-                                    if tmp_dia==None:
-                                        break
-                                seleccion+=1
-    
-                            horario_posible_maestros[tmp_dia][nuevo_indice],horario_posible_maestros[dia][hora-1] = maestro.nombre ,maestro_int # Se hace el intercambio con el profresor
-                            horario_posible[tmp_dia][nuevo_indice],horario_posible[dia][hora-1] = maestro.materia ,materia_int # Se hace el intercambio de la materia
-    #                print(hora-1,nuevo_indice)
+    #        elif maestro.nombre in horario_posible_maestros[dia]: # Intentamos ordenar al resto de los maestros
+    #            hora = horario_posible_maestros[dia].index(maestro.nombre) + 1 # hora en la que esta el maestro
+    #            if hora not in maestro.horarios[dia_to_num(dia)]: # Buscamos si la hora no esta en las horas que escojio el maestro
+    #                if hora>max(maestro.horarios[dia_to_num(dia)]):
+    #                    diff = hora-max(maestro.horarios[dia_to_num(dia)])
+    #                    if diff>1: # Buscamos si la diferencia es lo suficiente para mover
+    #                        print("ordenar: ",maestro.nombre,hora, maestro.horarios[dia_to_num(dia)])
+    #                        seleccion = 0
+    #                        tmp_dia = dia #Creamos el dia para poder luego inentar el siguiente dia
+    #                        while True: # Emepzamos un loop para buscar al maestro con el cual cambiar, este no debe tener preferencia
+    #                            nuevo_indice = maestro.horarios[dia_to_num(tmp_dia)][seleccion]-1 # Seleccionamos una hora de los que el maestro prefiere
+    #                            try:
+    #                                maestro_int = horario_posible_maestros[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
+    #                            except:
+    #                                nuevo_indice-=1 # TODO: que no se este usando el indice negativo
+    #                                break
+    #                            materia_int = horario_posible[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
+    #                            result = list(filter(lambda person: person.nombre == maestro_int, maestros1A))
+    #                            if not result[0].p and hora in result[0].horarios[dia_to_num(dia)] : #Si no tiene preferencia lo encontramos y terminamos el loop
+    #                                break
+    #
+    #                            seleccion+=1
+    #                            if seleccion==len(maestro.horarios[dia_to_num(tmp_dia)]): # Si se llego al limite del los dias intentamos buscar el dia siguiente
+    #                                seleccion=0
+    #                                tmp_dia=num_to_dia(dia_to_num(tmp_dia)+1) #Avanzamos el dia 
+    #                                if tmp_dia==None:break
+    #
+    #                        horario_posible_maestros[tmp_dia][nuevo_indice],horario_posible_maestros[dia][hora-1] = maestro.nombre ,maestro_int # Se hace el intercambio con el profresor
+    #                        horario_posible[tmp_dia][nuevo_indice],horario_posible[dia][hora-1] = maestro.materia ,materia_int # Se hace el intercambio de la materia
+    #                elif hora<min(maestro.horarios[dia_to_num(dia)]):
+    #                    diff = min(maestro.horarios[dia_to_num(dia)])-hora
+    #                    if diff>1: # Buscamos si la diferencia es lo suficiente para mover
+    #                        print(maestro.nombre, "HOAOOAOL",hora, maestro.horarios[dia_to_num(dia)])
+    #                        seleccion = 0
+    #                        tmp_dia = dia #Creamos el dia para poder luego inentar el siguiente dia
+    #                        while True: # Emepzamos un loop para buscar al maestro con el cual cambiar, este no debe tener preferencia
+    #                            nuevo_indice = maestro.horarios[dia_to_num(tmp_dia)][seleccion]-1 # Seleccionamos una hora de los que el maestro prefiere
+    #                            try: 
+    #                                maestro_int = horario_posible_maestros[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
+    #                            except:
+    #                                nuevo_indice=-1
+    #                                break
+    #                            materia_int = horario_posible[tmp_dia][nuevo_indice] # El maestro por el cual va a cambiar lugar
+    #                            result = list(filter(lambda person: person.nombre == maestro_int, maestros1A))
+    #                            if not result[0].p and hora in result[0].horarios[dia_to_num(dia)] : #Si no tiene preferencia lo encontramos y terminamos el loop
+    #                                break
+    #
+    #                            if seleccion==len(maestro.horarios[dia_to_num(tmp_dia)]): # Si se llego al limite del los dias intentamos buscar el dia siguiente
+    #                                seleccion=-1
+    #                                tmp_dia=num_to_dia(dia_to_num(tmp_dia)+1) #Avanzamos el dia 
+    #                                if tmp_dia==None:
+    #                                    break
+    #                            seleccion+=1
+    #
+    #                        horario_posible_maestros[tmp_dia][nuevo_indice],horario_posible_maestros[dia][hora-1] = maestro.nombre ,maestro_int # Se hace el intercambio con el profresor
+    #                        horario_posible[tmp_dia][nuevo_indice],horario_posible[dia][hora-1] = maestro.materia ,materia_int # Se hace el intercambio de la materia
+    ##                print(hora-1,nuevo_indice)
     #            print(maestro.nombre,dia,hora)
     
     # Mapeamos los resultados a los horarios de los maestros

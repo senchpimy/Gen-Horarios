@@ -1,3 +1,4 @@
+from profesor import profesores as Profs
 from ordenar import horarios_maestros
 from ordenar import horarios_grupo
 comienzo = """
@@ -64,6 +65,7 @@ for grupo in horarios_grupo:
     comienzo+=grupo_str
 
 for maestro in horarios_maestros:
+    m = list(filter(lambda person: person.nombre == maestro, Profs))[0]
     print(horarios_maestros[maestro])
     maestro_str=f"""    
 	{{\\huge \\textbf{{{maestro} }}}}
