@@ -70,40 +70,6 @@ for i in grupos:
             grupos_maestro[i][j.materia]=j.nombre
 
 pprint.pprint(grupos_maestro)
-for i in grupos_maestro:
-    val = f"""
-	{{\\huge \\textbf{{{i}}}}}
-  \\begin{{center}}
-\\begin{{tabular}}{{||c c c c c c||}} 
- \\hline
-  Horas & Lunes & Martes  & Miercoles & Jueves & Viernes\\\\ [1ex] 
- \\hline\\hline
-  7:30-8:20 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
- \\hline
-   8:20-9:10 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
- \\hline
-   9:10-10:00 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
- \\hline
-   10:00-10:50 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
- \\hline
-   11:10-12:00 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
- \\hline
-   12:00-12:50 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
- \\hline
-   12:50-13:40 & \\_ & \\_ & \\_ & \\_ & \\_ \\\\ 
- \\hline
-\\end{{tabular}}
-\\end{{center}}
-    """
-    val2 = ""
-    for j in grupos_maestro[i]:
-        #print(j)
-        val2 += f"""
-        \\textbf{{{j}: }}{grupos_maestro[i][j]}\\\\
-        """
-    val2+="\\pagebreak"
-    #print(val+val2)
-    #print(grupos_maestro[i])
 
 for i in profesores:
     _=1
