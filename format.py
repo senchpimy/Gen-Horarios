@@ -1,6 +1,8 @@
 from profesor import profesores as Profs
-from ordenar import horarios_maestros
-from ordenar import horarios_grupo
+#from ordenar import horarios_maestros
+#from ordenar import horarios_grupo
+from ordenar2 import maestros_horarios as horarios_maestros
+from ordenar2 import grupos_horarios as horarios_grupo
 comienzo = """
 \\documentclass{article}
 \\usepackage{titlesec}

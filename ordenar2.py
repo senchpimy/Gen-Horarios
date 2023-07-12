@@ -132,59 +132,64 @@ for grupo in grupos_maestro:
                     d+=1 #Avanzamos un dia
 
 # Contamos las horas de materia por grupo Y eliminamos las extras
-vel = "1A"
-val = grupos_horarios[vel].copy()
-for g in grupos_horarios:
-    _=0
-    horas={}
-    match g[0]:
-        case '1':
-            horas=horas_1ero.copy()
-        case "2":
-            horas=horas_2do.copy()
-        case "3":
-            horas=horas_3ero.copy()
-    for m in grupos_horarios[g]:
-        #m: dia
-        for hora in grupos_horarios[g][m]:
-            if horas.get(hora)!=None:
-                horas[hora]-=1
-    for materia in horas:
-        #g: grupo
-        if horas[materia]<0: # Quitamos horas a la materia que se pasan
-            semana_actual=[0 for _ in range(5)]
-            dia_actual=0
-            for dia in grupos_horarios[g]: # Contamos los dias que contengan 
-                for hora in grupos_horarios[g][dia]:
-                    #print(hora,"Hora", dia)
-                    if hora == materia:
-                        semana_actual[dia_actual]+=1
-                dia_actual+=1
-                
-                #print(semana_actual,"AHAHAHA", grupos_horarios[g],"LALALALAL", materia)
-            unicos=False
-            for dia in semana_actual:
-                if dia>1:
-                    unicos=True
-
-            if unicos:
-                for index in range(horas[materia],0): # Si todos los dias tienen solo un unico dia quitamos desde atras
-                    m = list(grupos_horarios[g].keys())[index]
-                    try:
-                        i = grupos_horarios[g][m].index(materia)
-                        #grupos_horarios[g][m][i]=""
-                    except:
-                        pass
-                    _=0
-            else:
+def eliminar_repetidos():
+    for g in grupos_horarios:
+        horas={}
+        match g[0]:
+            case '1':
+                horas=horas_1ero.copy()
+            case "2":
+                horas=horas_2do.copy()
+            case "3":
+                horas=horas_3ero.copy()
+        for m in grupos_horarios[g]:
+            #m: dia
+            for hora in grupos_horarios[g][m]:
+                if horas.get(hora)!=None:
+                    horas[hora]-=1
+        print(horas)
+        for materia in horas:
+            #g: grupo
+            if horas[materia]<0: # Quitamos horas a la materia que se pasan
+                semana_actual=[0 for _ in range(5)]
+                dia_actual=0
+                for dia in grupos_horarios[g]: # Contamos los dias que contengan 
+                    for hora in grupos_horarios[g][dia]:
+                        if hora == materia:
+                            semana_actual[dia_actual]+=1
+                    dia_actual+=1
+                    
+                unicos=True
                 for dia in semana_actual:
-                    pass
-    print(horas)
-
-# Imprimimos
-
-print_horario(grupos_horarios[vel])
-print_horario(val)
+                    if dia>1:
+                        unicos=False
+    
+                if unicos:
+                    #print("Unicos valores")
+                    for index in range(horas[materia],0): # Si todos los dias tienen solo un unico dia quitamos desde atras
+                        m = list(grupos_horarios[g].keys())[index]
+                        try:
+                            i = grupos_horarios[g][m].index(materia)
+                            grupos_horarios[g][m][i]="" # Eliminamos el elemento que se repite
+                            maestro = list(filter(lambda person: person.materia == materia and g in person.grupos, Profs))[0]
+                            maestros_horarios[maestro.nombre][m][i]="" # Eliminamos el elemento que se repite
+                        except:
+                            pass
+                else:
+                    ind = 0
+                    for dia in semana_actual:
+                        if dia > 1:
+                            li = grupos_horarios[g][num_to_dia(ind)]
+                            indice= len(li) - 1 - li[::-1].index(materia) # Encontramos el indice del ultimo elemento en el mismo dia
+                            grupos_horarios[g][num_to_dia(ind)][indice]="" # Lo eliminamos
+                            maestro = list(filter(lambda person: person.materia == materia and g in person.grupos, Profs))[0]
+                            maestros_horarios[maestro.nombre][num_to_dia(ind)][indice]="" # Lo eliminamos
+                        ind+=1
+# Repetimos el Proceso dos veces para evitar cualquier posible error
+eliminar_repetidos()
+print()
+eliminar_repetidos()
+    #print(horas)
 
 #for m in maestros_horarios:
 #    print(m)
