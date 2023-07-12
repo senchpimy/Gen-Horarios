@@ -7,6 +7,42 @@ import pprint
 def prefesor(Dict):
     return namedtuple('Profesor', Dict.keys())(*Dict.values())
 
+horas_1ero={
+        "español":5,
+        "ingles":3,
+        "matematicas":5,
+        "ciencias":4, # biologia
+        "historia":2,
+        "geografia":4,
+        "civica":2,
+        "artes":3,
+        "tutoria":1,
+        "ef":2,
+            }
+
+horas_2do={
+        "español":5,
+        "ingles":3,
+        "matematicas":5,
+        "ciencias":6, # fisica
+        "historia":4,
+        "civica":2,
+        "artes":3,
+        "tutoria":1,
+        "ef":2,
+            }
+
+horas_3ero={
+        "español":5,
+        "ingles":3,
+        "matematicas":5,
+        "ciencias":6, # Quimica
+        "historia":4,
+        "civica":2,
+        "artes":3,
+        "ef":2,
+        "tutoria":1,
+            }
 #class Profesor:
 #    def __init__(self,nombre:str,hg:int,hs:int,p:bool,horarios:dict,grupos:list) -> None:
 #        self.nombre=nombre
@@ -83,3 +119,18 @@ for i in profesores:
  #   if i.tutoria != None: print(i.nombre,i.tutoria)
 
 #pprint.pprint(grupos_maestro["1A"])
+
+# Verificamos que todos los maestros tengan las horas necesarias para cubrir sus grupos
+for grupo in grupos:
+    horas_requeridas={}
+    match grupo[0]:
+        case "1":
+            horas_requeridas=horas_1ero
+        case "2":
+            horas_requeridas=horas_2do
+        case "3":
+            horas_requeridas=horas_3ero
+    for prof in profesores:
+        if  grupo in prof.grupos:
+            if horas_requeridas[prof.materia] > prof.horas_grupo/len(prof.grupos):
+                print(f"El maestro {prof.nombre} no puede cumplir sus horas requeridas con el total de sus grupos, pues la matera {prof.materia} para el grupo {grupo} requiere de {horas_requeridas[prof.materia]} horas y con {len(prof.grupos)} grupos y con {prof.horas_grupo} de horas de grupo serian un total de {prof.horas_grupo/len(prof.grupos)} horas por grupo")

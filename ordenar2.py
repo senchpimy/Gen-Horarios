@@ -83,14 +83,16 @@ horas_3ero={
 grupos_horarios={}
 maestros_horarios={}
 for grupo in grupos_maestro:
-    maestros_grupo_actual=[]
     grupos_horarios[grupo]={
-            "Lunes":[],
-            "Martes":[],
-            "Miercoles":[],
-            "Jueves":[],
-            "Viernes":[],
-            }
+            "Lunes":["" for _ in range(7)],
+            "Martes":["" for _ in range(7)],
+            "Miercoles":["" for _ in range(7)],
+            "Jueves":["" for _ in range(7)],
+            "Viernes":["" for _ in range(7)],
+        }
+
+for grupo in grupos_maestro:
+    maestros_grupo_actual=[]
 
     for prof in Profs: # Encontramos los maestros de este grupo
         if prof.nombre in grupos_maestro[grupo].values():
@@ -102,7 +104,7 @@ for grupo in grupos_maestro:
                 _=0 # TODO Ordenar cuando ya esta en el horario
             else:
                 maestros_horarios[maestro.nombre]={
-                    "Lunes":[f"{i}" for i in range(7)],
+                    "Lunes":["_" for _ in range(7)],
                     "Martes":["" for _ in range(7)],
                     "Miercoles":["" for _ in range(7)],
                     "Jueves":["" for _ in range(7)],
@@ -116,14 +118,78 @@ for grupo in grupos_maestro:
                     #for g in maestro.grupos:
                     for hora in range(len(dia)):
                         if dia[hora]==0:continue
-                        maestros_horarios[maestro.nombre][num_to_dia(d)][dia[hora]-1]+=maestro.grupos[grupo] # Asignar grupo
-                        hora+=1
-                        print(hora, len(dia))
-                        grupo+=1
-                        if grupo== len(maestro.grupos):
-                            grupo=0
+                        if len(grupos_horarios[maestro.grupos[grupo]][num_to_dia(d)][dia[hora]-1])<2:
+                            maestros_horarios[maestro.nombre][num_to_dia(d)][dia[hora]-1]+=maestro.grupos[grupo] # Asignar grupo
+                            #print(grupos_horarios[maestro.grupos[grupo]][num_to_dia(d)][dia[hora]-1],"AAA")
+                            grupos_horarios[maestro.grupos[grupo]][num_to_dia(d)][dia[hora]-1]+=maestro.materia
+                            hora+=1
+                            print(hora, len(dia))
+                            grupo+=1
+                            if grupo== len(maestro.grupos):
+                                grupo=0
+                        else:
+                            _=0 # TODO Hacer algo cuando el lugar en el grupo en cierta hora esta ocupado
                     d+=1 #Avanzamos un dia
-                    
-for m in maestros_horarios:
-    print(m)
-    print_horario(maestros_horarios[m])
+
+# Contamos las horas de materia por grupo Y eliminamos las extras
+vel = "1A"
+val = grupos_horarios[vel].copy()
+for g in grupos_horarios:
+    _=0
+    horas={}
+    match g[0]:
+        case '1':
+            horas=horas_1ero.copy()
+        case "2":
+            horas=horas_2do.copy()
+        case "3":
+            horas=horas_3ero.copy()
+    for m in grupos_horarios[g]:
+        #m: dia
+        for hora in grupos_horarios[g][m]:
+            if horas.get(hora)!=None:
+                horas[hora]-=1
+    for materia in horas:
+        #g: grupo
+        if horas[materia]<0: # Quitamos horas a la materia que se pasan
+            semana_actual=[0 for _ in range(5)]
+            dia_actual=0
+            for dia in grupos_horarios[g]: # Contamos los dias que contengan 
+                for hora in grupos_horarios[g][dia]:
+                    #print(hora,"Hora", dia)
+                    if hora == materia:
+                        semana_actual[dia_actual]+=1
+                dia_actual+=1
+                
+                #print(semana_actual,"AHAHAHA", grupos_horarios[g],"LALALALAL", materia)
+            unicos=False
+            for dia in semana_actual:
+                if dia>1:
+                    unicos=True
+
+            if unicos:
+                for index in range(horas[materia],0): # Si todos los dias tienen solo un unico dia quitamos desde atras
+                    m = list(grupos_horarios[g].keys())[index]
+                    try:
+                        i = grupos_horarios[g][m].index(materia)
+                        #grupos_horarios[g][m][i]=""
+                    except:
+                        pass
+                    _=0
+            else:
+                for dia in semana_actual:
+                    pass
+    print(horas)
+
+# Imprimimos
+
+print_horario(grupos_horarios[vel])
+print_horario(val)
+
+#for m in maestros_horarios:
+#    print(m)
+#    print_horario(maestros_horarios[m])
+## Imprimir grupos
+#for g in grupos_horarios:
+#    print(g)
+#    print_horario(grupos_horarios[g])
