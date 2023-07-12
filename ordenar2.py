@@ -306,10 +306,11 @@ f = 0
 l="3F"
 for g in grupos_horarios:
     if g[0]=="3":
-        if g[1] in "ABCD":
+        if g[1] in "ABC":
             for clase in range(1,4): # Las primeras horas para los primeros grupos
-                grupos_horarios[g]["Viernes"][clase]="tecnologia"
-                taller_grupos["Viernes"][clase]="3sec1"
+                if grupos_horarios[g]["Viernes"][clase]=="":
+                    grupos_horarios[g]["Viernes"][clase]+="tecnologia"
+                    taller_grupos["Viernes"][clase]="3sec1"
         else:
             n = 4
             for clase in grupos_horarios[g]["Viernes"][4:]: # Las segundas horas para los que quedan
@@ -334,17 +335,60 @@ maestros_horarios[f.nombre]["Miercoles"][6]=l
 grupos_horarios[l]["Viernes"][4]=""
 grupos_horarios[l]["Miercoles"][6]+=f.materia
 
-for l in "EF":
+keys = {
+        "1A":"1sec1",
+        "1B":"1sec1",
+        "1C":"1sec1",
+        "1D":"1sec2",
+        "1E":"1sec2",
+        "1F":"1sec2",
+        "1G":"1sec2",
+        "2A":"2sec1",
+        "2B":"2sec1",
+        "2C":"2sec1",
+        "2D":"2sec2",
+        "2E":"2sec2",
+        "2F":"2sec2",
+        "3A":"3sec1",
+        "3B":"3sec1",
+        "3C":"3sec1",
+        "3D":"3sec2",
+        "3E":"3sec2",
+        "3F":"3sec2",
+        }
+
+for g in grupos_horarios:
+    for dia in taller_grupos:
+        n = 0
+        for clase in taller_grupos[dia]:
+            if clase==keys[g]:
+                grupos_horarios[g][dia][n]="tecnologia"
+            n+=1
+
+for l in "DEF":
     for i in range(4,7):
         taller_grupos["Viernes"][i]="3sec2"
-        #grupos_horarios[f"3{l}"][i]="tecnologia"
+        grupos_horarios[f"3{l}"]["Viernes"][i]="tecnologia"
 
-print_horario(taller_grupos)
-
+# Acomodar las tutorias con preferencia
+for maestro in Profs:
+    if maestro.p:
+        brea = False
+        if maestro.tutoria!=None:
+            di_ind= 0
+            for dia in maestro.horarios:
+                for clase in dia: 
+                    if maestros_horarios[maestro.nombre][num_to_dia(di_ind)][clase-1]=="":
+                        brea = True
+                        print(clase, "AA", num_to_dia(di_ind), maestro.nombre)
+                        grupos_horarios[maestro.tutoria][num_to_dia(di_ind)][clase-1]="tutoria"
+                        maestros_horarios[maestro.nombre][num_to_dia(di_ind)][clase-1]=maestro.tutoria+"(tutoria)"
+                if brea: break
+                di_ind += 1
 #for m in maestros_horarios:
 #    print(m)
 #    print_horario(maestros_horarios[m])
 ## Imprimir grupos
-#for g in grupos_horarios:
-#    print(g)
-#    print_horario(grupos_horarios[g])
+for g in grupos_horarios:
+    print(g)
+    print_horario(grupos_horarios[g])
