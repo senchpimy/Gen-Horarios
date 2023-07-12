@@ -90,8 +90,9 @@ for grupo in grupos_maestro:
             "Jueves":["" for _ in range(7)],
             "Viernes":["" for _ in range(7)],
         }
-
+#grupo_actual=0
 for grupo in grupos_maestro:
+    s = grupo
     maestros_grupo_actual=[]
 
     for prof in Profs: # Encontramos los maestros de este grupo
@@ -104,7 +105,7 @@ for grupo in grupos_maestro:
                 _=0 # TODO Ordenar cuando ya esta en el horario
             else:
                 maestros_horarios[maestro.nombre]={
-                    "Lunes":["_" for _ in range(7)],
+                    "Lunes":["" for _ in range(7)],
                     "Martes":["" for _ in range(7)],
                     "Miercoles":["" for _ in range(7)],
                     "Jueves":["" for _ in range(7)],
@@ -120,7 +121,6 @@ for grupo in grupos_maestro:
                         if dia[hora]==0:continue
                         if len(grupos_horarios[maestro.grupos[grupo]][num_to_dia(d)][dia[hora]-1])<2:
                             maestros_horarios[maestro.nombre][num_to_dia(d)][dia[hora]-1]+=maestro.grupos[grupo] # Asignar grupo
-                            #print(grupos_horarios[maestro.grupos[grupo]][num_to_dia(d)][dia[hora]-1],"AAA")
                             grupos_horarios[maestro.grupos[grupo]][num_to_dia(d)][dia[hora]-1]+=maestro.materia
                             hora+=1
                             print(hora, len(dia))
@@ -128,8 +128,42 @@ for grupo in grupos_maestro:
                             if grupo== len(maestro.grupos):
                                 grupo=0
                         else:
-                            _=0 # TODO Hacer algo cuando el lugar en el grupo en cierta hora esta ocupado
+                            pass # TODO Hacer algo cuando el lugar en el grupo en cierta hora esta ocupado
                     d+=1 #Avanzamos un dia
+
+# Agregamos los que faltaron
+def agregar():
+    for g in grupos_horarios:
+        horas={}
+        match g[0]:
+            case '1':
+                horas=horas_1ero.copy()
+            case "2":
+                horas=horas_2do.copy()
+            case "3":
+                horas=horas_3ero.copy()
+        for m in grupos_horarios[g]:
+            #m: dia
+            for hora in grupos_horarios[g][m]:
+                if horas.get(hora)!=None:
+                    horas[hora]-=1
+        for materia in horas:
+           if horas[materia]==1 and materia != "tutoria":
+                maestro = list(filter(lambda p: p.materia==materia and g in p.grupos, Profs))[0]
+                print_horario(grupos_horarios[g])
+                for l in range(len(grupos_horarios[g])):
+                    if maestro.materia not in grupos_horarios[g][num_to_dia(l)]:
+#                        print(num_to_dia(l), "AAAAAAA", grupos_horarios[g][num_to_dia(l)])
+ #                       print(maestro.horarios[l])
+                        for h in maestro.horarios[l]:
+                            if maestros_horarios[maestro.nombre][num_to_dia(l)][h-1]=="":
+                                maestros_horarios[maestro.nombre][num_to_dia(l)][h-1]=g
+                                grupos_horarios[g][num_to_dia(l)][h-1]=maestro.materia
+                                #print("Hora libre")
+
+  #              print_horario(maestros_horarios[maestro.nombre])
+   #             print(materia, g, maestro)
+agregar()
 
 # Contamos las horas de materia por grupo Y eliminamos las extras
 def eliminar_repetidos():
@@ -147,7 +181,7 @@ def eliminar_repetidos():
             for hora in grupos_horarios[g][m]:
                 if horas.get(hora)!=None:
                     horas[hora]-=1
-        print(horas)
+        print(horas, g)
         for materia in horas:
             #g: grupo
             if horas[materia]<0: # Quitamos horas a la materia que se pasan
@@ -189,7 +223,22 @@ def eliminar_repetidos():
 eliminar_repetidos()
 print()
 eliminar_repetidos()
-    #print(horas)
+print()
+eliminar_repetidos()
+
+
+# Añadimos los talleres
+#HORAS_TALLER = 6
+#momentos_posibles={
+#        "Lunes":[],
+#        "Martes":[],
+#        "Miercoles":[],
+#        "Jueves":[],
+#        "Viernes":[]
+#        }
+
+#for g in grupos_horarios:
+
 
 #for m in maestros_horarios:
 #    print(m)
