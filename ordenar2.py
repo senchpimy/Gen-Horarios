@@ -35,18 +35,20 @@ def print_horario(d):
         while len(d[key]) < max_rows:
             d[key].append("")
     
+    n=0
     for i in range(max_rows):
         row = [d[key][i] for key in headers]
-        table_data.append(row)
+        table_data.append([i+1]+row)
+        n+=1
     
-    print(tabulate(table_data, headers=headers))
+    print(tabulate(table_data, headers=["Hora"]+headers))
     print()
 
 horas_1ero={
         "español":5,
         "ingles":3,
         "matematicas":5,
-        "ciencia":4, # biologia
+        "ciencias":4, # biologia
         "historia":2,
         "geografia":4,
         "civica":2,
@@ -59,7 +61,7 @@ horas_2do={
         "español":5,
         "ingles":3,
         "matematicas":5,
-        "ciencia":6, # fisica
+        "ciencias":6, # fisica
         "historia":4,
         "civica":2,
         "artes":3,
@@ -71,7 +73,7 @@ horas_3ero={
         "español":5,
         "ingles":3,
         "matematicas":5,
-        "ciencia":6, # Quimica
+        "ciencias":6, # Quimica
         "historia":4,
         "civica":2,
         "artes":3,
@@ -153,16 +155,11 @@ def agregar():
                 print_horario(grupos_horarios[g])
                 for l in range(len(grupos_horarios[g])):
                     if maestro.materia not in grupos_horarios[g][num_to_dia(l)]:
-#                        print(num_to_dia(l), "AAAAAAA", grupos_horarios[g][num_to_dia(l)])
- #                       print(maestro.horarios[l])
                         for h in maestro.horarios[l]:
                             if maestros_horarios[maestro.nombre][num_to_dia(l)][h-1]=="":
                                 maestros_horarios[maestro.nombre][num_to_dia(l)][h-1]=g
                                 grupos_horarios[g][num_to_dia(l)][h-1]=maestro.materia
-                                #print("Hora libre")
 
-  #              print_horario(maestros_horarios[maestro.nombre])
-   #             print(materia, g, maestro)
 agregar()
 
 # Contamos las horas de materia por grupo Y eliminamos las extras
@@ -228,17 +225,121 @@ eliminar_repetidos()
 
 
 # Añadimos los talleres
-#HORAS_TALLER = 6
-#momentos_posibles={
-#        "Lunes":[],
-#        "Martes":[],
-#        "Miercoles":[],
-#        "Jueves":[],
-#        "Viernes":[]
-#        }
+HORAS_TALLER = 3
+taller = {}
 
-#for g in grupos_horarios:
+for j in range(1,4):
+    key=""
+    for l in "ABCDEFGH":
+        momentos_posibles={
+        "Lunes":[0 for _ in range(7)],
+        "Martes":[0 for _ in range(7)],
+        "Miercoles":[0 for _ in range(7)],
+        "Jueves":[0 for _ in range(7)],
+        "Viernes":[0 for _ in range(7)]
+        }
+        if l in ['A', 'B', 'C']:
+            key = f'{j}sec1'
+        elif l in ['D', 'E', 'F', 'G', 'H']:
+            key = f'{j}sec2'
+        taller[key] = momentos_posibles
 
+horas_taller={}
+for key in taller:
+    horas_taller[key]=HORAS_TALLER
+
+# Contamos los espacios disponibles
+for g in grupos_horarios:
+    key=""
+    espacios_requeridos=0
+    if g[1] in ['A', 'B', 'C']:
+        key = f'{g[0]}sec1'
+        espacios_requeridos=3
+    elif g[1] in ['D', 'E', 'F', 'G',]:
+        key = f'{g[0]}sec2'
+        espacios_requeridos=3
+        if g[0]=="1":
+            espacios_requeridos=4
+    for j in range(5):
+        for hora in range(7):
+            if grupos_horarios[g][num_to_dia(j)][hora]=="":
+                taller[key][num_to_dia(j)][hora]+=1
+
+    for j in range(5):
+        for hora in taller[key][num_to_dia(j)][4:]:
+            if espacios_requeridos ==hora:
+                horas_taller[key]-=1
+                #grupos_horarios[g][num_to_dia(j)][hora]="tecnologia"
+                #print(f"Hora posible {key}",horas_taller[key])
+
+print(taller)
+print()
+print(horas_taller)
+
+taller_grupos={
+    "Lunes":["" for _ in range(7)],
+    "Martes":["" for _ in range(7)],
+    "Miercoles":["" for _ in range(7)],
+    "Jueves":["" for _ in range(7)],
+    "Viernes":["" for _ in range(7)],
+}
+
+
+for key in taller: # Ordenar
+    espacios_requeridos=3
+    if key[0] == "1" and key[-1]=="2":
+        espacios_requeridos=4
+
+    if horas_taller[key]<=0:
+        t = HORAS_TALLER
+        for dia in taller[key]:
+            for ind,hora in enumerate(taller[key][dia]):
+                #if hora == espacios_requeridos and taller_grupos[dia][ind]=="":
+                if hora == espacios_requeridos and ind > 3 and t>0 and taller_grupos[dia][ind]=="":
+                    t-=1
+                    print(horas_taller[key])
+                    taller_grupos[dia][ind]+=key
+
+
+# Ordenar los 3ros
+f = 0
+l="3F"
+for g in grupos_horarios:
+    if g[0]=="3":
+        if g[1] in "ABCD":
+            for clase in range(1,4): # Las primeras horas para los primeros grupos
+                grupos_horarios[g]["Viernes"][clase]="tecnologia"
+                taller_grupos["Viernes"][clase]="3sec1"
+        else:
+            n = 4
+            for clase in grupos_horarios[g]["Viernes"][4:]: # Las segundas horas para los que quedan
+                if clase!= "":
+                    maestro = list(filter(lambda p: p.materia==clase and g in p.grupos, Profs))[0]
+                    d_ind=0
+                    for dia in maestro.horarios:
+                        for clase in dia:
+                            if maestros_horarios[maestro.nombre][num_to_dia(d_ind)][clase-2]=="":
+                                if maestros_horarios[maestro.nombre][num_to_dia(d_ind)][clase-1]==g: # Hacer horas dobles
+                                    maestros_horarios[maestro.nombre][num_to_dia(d_ind)][clase-2]=g
+                                    maestros_horarios[maestro.nombre]["Viernes"][n]=""
+                                    grupos_horarios[g]["Viernes"][n]="" # Eliminamos la clase
+                                    f = maestro
+                                    grupos_horarios[g][num_to_dia(d_ind)][clase-2]+=maestro.materia
+                                    pass
+                        d_ind+=1
+                n+=1
+# Movimiento manual 
+maestros_horarios[f.nombre]["Viernes"][4]=""
+maestros_horarios[f.nombre]["Miercoles"][6]=l
+grupos_horarios[l]["Viernes"][4]=""
+grupos_horarios[l]["Miercoles"][6]+=f.materia
+
+for l in "EF":
+    for i in range(4,7):
+        taller_grupos["Viernes"][i]="3sec2"
+        #grupos_horarios[f"3{l}"][i]="tecnologia"
+
+print_horario(taller_grupos)
 
 #for m in maestros_horarios:
 #    print(m)
