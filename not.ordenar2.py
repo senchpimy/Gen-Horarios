@@ -92,8 +92,7 @@ for grupo in grupos_maestro:
             "Jueves":["" for _ in range(7)],
             "Viernes":["" for _ in range(7)],
         }
-
-#Ordenamos a los maestros
+#grupo_actual=0
 for grupo in grupos_maestro:
     s = grupo
     maestros_grupo_actual=[]
