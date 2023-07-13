@@ -163,6 +163,7 @@ def agregar():
 agregar()
 
 # Contamos las horas de materia por grupo Y eliminamos las extras
+horas_grupos={}
 def eliminar_repetidos():
     for g in grupos_horarios:
         horas={}
@@ -216,6 +217,7 @@ def eliminar_repetidos():
                             maestro = list(filter(lambda person: person.materia == materia and g in person.grupos, Profs))[0]
                             maestros_horarios[maestro.nombre][num_to_dia(ind)][indice]="" # Lo eliminamos
                         ind+=1
+        horas_grupos[g]=horas
 # Repetimos el Proceso dos veces para evitar cualquier posible error
 eliminar_repetidos()
 print()
@@ -335,6 +337,13 @@ maestros_horarios[f.nombre]["Miercoles"][6]=l
 grupos_horarios[l]["Viernes"][4]=""
 grupos_horarios[l]["Miercoles"][6]+=f.materia
 
+grupos_horarios["3D"]["Jueves"][4]="artes"
+grupos_horarios["3D"]["Jueves"][6]=""
+maestro_tmp = list(filter(lambda p: p.materia=="artes" and "3D" in p.grupos, Profs))[0]
+maestros_horarios[maestro_tmp.nombre]["Jueves"][4]="3D"
+maestros_horarios[maestro_tmp.nombre]["Miercoles"][6]=""
+maestros_horarios[maestro_tmp.nombre]["Jueves"][6]=""
+
 keys = {
         "1A":"1sec1",
         "1B":"1sec1",
@@ -385,10 +394,137 @@ for maestro in Profs:
                         maestros_horarios[maestro.nombre][num_to_dia(di_ind)][clase-1]=maestro.tutoria+"(tutoria)"
                 if brea: break
                 di_ind += 1
+
+# Agregamos al resto de los maestros
+for g in grupos_horarios:
+    maestros_grupo_actual=[]
+    horas = {}
+    match g[0]:
+        case '1':
+            horas=horas_1ero.copy()
+        case "2":
+            horas=horas_2do.copy()
+        case "3":
+            horas=horas_3ero.copy()
+    for dia in grupos_horarios[g]:
+        for clase in grupos_horarios[g][dia]:
+            if clase == "tecnologia":continue
+            if clase != "":
+                horas[clase]-=1
+
+    horas_grupos[g]=horas
+
+for prof in Profs:
+    if prof.nombre not in maestros_horarios:
+        maestros_horarios[prof.nombre]={
+    "Lunes":["" for _ in range(7)],
+    "Martes":["" for _ in range(7)],
+    "Miercoles":["" for _ in range(7)],
+    "Jueves":["" for _ in range(7)],
+    "Viernes":["" for _ in range(7)],
+                }
+
+for g in grupos_maestro:
+    maestros_grupo_actual=[]
+    horas = horas_grupos[g]
+
+    for prof in Profs: # Encontramos los maestros de este grupo
+        if prof.nombre in grupos_maestro[g].values():
+            maestros_grupo_actual.append(prof)
+
+    for materia in horas:
+        m = 0
+        br = True
+        for ma in maestros_grupo_actual:
+            if ma.materia == materia:
+                m = ma
+                br = False
+        if br:break
+        for j in range(horas[materia]):
+            agg = False
+            n = 0
+            #print(horas[materia], materia, "AAAA", g )
+            for dia in m.horarios:
+                for clase in dia:
+                    clase = clase -1
+                    if agg: break
+                    if  maestros_horarios[m.nombre][num_to_dia(n)][clase]=="" and grupos_horarios[g][num_to_dia(n)][clase]=="":
+                        maestros_horarios[m.nombre][num_to_dia(n)][clase]+=g
+                        grupos_horarios[g][num_to_dia(n)][clase]+=m.materia
+                        agg=True
+
+                    print(m.nombre, m.materia, dia, num_to_dia(n))
+                    pass
+                if agg:
+                    break
+                n +=1
+
+for maestro in maestros_horarios: # Eliminar las veces que hay clases mas de 3 veces al dia o 2 no son seguidas
+    for dia in maestros_horarios[maestro]:
+        dia_dict = {}
+        for clase in maestros_horarios[maestro][dia]:
+            try: 
+                dia_dict[clase]+=1
+            except:
+                dia_dict[clase]=1
+        for grupo in dia_dict:
+            if dia_dict[grupo]>=2 and grupo!="":
+                mae = list(filter(lambda p: p.nombre==maestro and grupo in p.grupos, Profs))[0]
+                if dia_dict[grupo]==2: # TODO comprobar que las dos horas sean seguidas
+                    p = 0
+                    for grp in maestros_horarios[mae.nombre][dia]:
+                        if maestros_horarios[mae.nombre][dia][p]==grupo:
+                            #print(grp, "AAAA")
+                            if maestros_horarios[mae.nombre][dia][p]==maestros_horarios[mae.nombre][dia][p+1]:
+                                continue
+                            else: break
+                        p+=1
+                    
+                for i in range(dia_dict[grupo]-1):
+                    contador_horas = 0 
+                    for lk in maestros_horarios[mae.nombre][dia]:
+                        if lk == grupo:
+                            maestros_horarios[mae.nombre][dia][contador_horas]=""
+                            grupos_horarios[grupo][dia][contador_horas]=""
+                            break
+                        contador_horas+=1
+                    pass
+
+
+for g in grupos_horarios:
+    maestros_grupo_actual=[]
+    horas = {}
+    match g[0]:
+        case '1':
+            horas=horas_1ero.copy()
+        case "2":
+            horas=horas_2do.copy()
+        case "3":
+            horas=horas_3ero.copy()
+    for dia in grupos_horarios[g]:
+        for clase in grupos_horarios[g][dia]:
+            if clase == "tecnologia":continue
+            if clase != "":
+                horas[clase]-=1
+
+    horas_grupos[g]=horas
+        #print(m)
+# Agregamos los que no se pudieron agregar
+#for g in grupos_maestro:
+#    maestros_grupo_actual=[]
+#    horas = horas_grupos[g]
+#
+#    for prof in Profs: # Encontramos los maestros de este grupo
+#        if prof.nombre in grupos_maestro[g].values():
+#            maestros_grupo_actual.append(prof)
+#    #
+
 #for m in maestros_horarios:
 #    print(m)
 #    print_horario(maestros_horarios[m])
+#
 ## Imprimir grupos
 for g in grupos_horarios:
     print(g)
     print_horario(grupos_horarios[g])
+    print(horas_grupos[g])
