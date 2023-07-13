@@ -509,22 +509,87 @@ for g in grupos_horarios:
 
     horas_grupos[g]=horas
         #print(m)
-# Agregamos los que no se pudieron agregar
-#for g in grupos_maestro:
-#    maestros_grupo_actual=[]
-#    horas = horas_grupos[g]
-#
-#    for prof in Profs: # Encontramos los maestros de este grupo
-#        if prof.nombre in grupos_maestro[g].values():
-#            maestros_grupo_actual.append(prof)
-#    #
 
+# Agregamos los que no se pudieron agregar
+for g in grupos_maestro:
+    maestros_grupo_actual=[]
+    horas = horas_grupos[g]
+
+    for prof in Profs: # Encontramos los maestros de este grupo
+        if prof.nombre in grupos_maestro[g].values():
+            maestros_grupo_actual.append(prof)
+    for materia in horas_grupos[g]:
+        if horas_grupos[g][materia]==0:
+            continue
+        print(materia, g)
+        if materia== "tutoria": continue
+        mae = list(filter(lambda p: p.materia==materia and g in p.grupos, Profs))[0]
+        for i in range(horas_grupos[g][materia]):
+            br = False
+            for dia in grupos_horarios[g]:
+                if br: break
+                clase_ind = 0
+                for clase in grupos_horarios[g][dia]:
+                    if br:break
+                    if  grupos_horarios[g][dia][clase_ind]=="":
+                        try: 
+                            prev = grupos_horarios[g][dia][clase_ind-1]
+                            if clase_ind==0:prev=None
+                        except: prev = None
+
+                        try: 
+                            next = grupos_horarios[g][dia][clase_ind+1]
+                        except: next = None
+                        if prev == materia == next: break
+                        if prev == materia:
+                            try:
+                                if grupos_horarios[g][dia][clase_ind-2]==materia:
+                                    break
+                            except: pass
+                            if maestros_horarios[mae.nombre][dia][clase_ind]!="":break
+                            grupos_horarios[g][dia][clase_ind]+=materia
+                            br = True
+                        elif next==materia:
+                            try:
+                                if grupos_horarios[g][dia][clase_ind+2]==materia:
+                                    break
+                            except: pass
+                            if maestros_horarios[mae.nombre][dia][clase_ind]!="":break
+                            grupos_horarios[g][dia][clase_ind]+=materia
+                            br = True
+                    clase_ind+=1
+            pass
+        _=0
+        pass
+
+for g in grupos_horarios:
+    maestros_grupo_actual=[]
+    horas = {}
+    match g[0]:
+        case '1':
+            horas=horas_1ero.copy()
+        case "2":
+            horas=horas_2do.copy()
+        case "3":
+            horas=horas_3ero.copy()
+    for dia in grupos_horarios[g]:
+        for clase in grupos_horarios[g][dia]:
+            if clase == "tecnologia":continue
+            if clase != "":
+                horas[clase]-=1
+
+    horas_grupos[g]=horas
+
+#for j in horas_grupos:
+#    print(j)
+#    print_horario(grupos_horarios[j])
+#    print(horas_grupos[j])
 #for m in maestros_horarios:
 #    print(m)
 #    print_horario(maestros_horarios[m])
 #
 ## Imprimir grupos
-for g in grupos_horarios:
-    print(g)
-    print_horario(grupos_horarios[g])
-    print(horas_grupos[g])
+#for g in grupos_horarios:
+#    print(g)
+#    print_horario(grupos_horarios[g])
+#    print(horas_grupos[g])
