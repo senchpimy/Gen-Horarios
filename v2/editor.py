@@ -2,6 +2,7 @@ import openpyxl
 import pandas as pd
 import os
 import re
+import copy
 
 DIAS = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"]
 COLUMNAS_HORARIO = ["HORA"] + DIAS
@@ -23,6 +24,7 @@ class EditorHorarios:
         self.archivo_excel = archivo_excel
         self.horarios_grupos = {}
         self.horarios_maestros = {}
+        self.backup_horarios = None
         self.df_analisis = None
         try:
             with open(archivo_excel, "r"):
@@ -73,6 +75,22 @@ class EditorHorarios:
                 self.horarios_maestros[nombre_hoja] = df
         print(f"Horario cargado manualmente desde '{self.archivo_excel}' con éxito.")
 
+    def _crear_backup(self):
+        self.backup_horarios = {
+            "grupos": copy.deepcopy(self.horarios_grupos),
+            "maestros": copy.deepcopy(self.horarios_maestros),
+        }
+        print("Backup del estado actual creado.")
+
+    def _restaurar_backup(self):
+        if self.backup_horarios:
+            self.horarios_grupos = self.backup_horarios["grupos"]
+            self.horarios_maestros = self.backup_horarios["maestros"]
+            print(
+                "\n¡Operación cancelada! El horario ha sido restaurado a su estado original."
+            )
+            self.backup_horarios = None
+
     def _get_clase_info(self, grupo, dia, periodo):
         df_grupo = self.horarios_grupos.get(grupo)
         if df_grupo is None:
@@ -96,9 +114,7 @@ class EditorHorarios:
                 break
 
         if maestro is None:
-            print(
-                f"Advertencia: No se pudo encontrar un maestro para la clase en [{dia}, P{periodo+1}] del grupo {grupo}."
-            )
+            pass
 
         return {
             "grupo": grupo,
@@ -176,26 +192,26 @@ class EditorHorarios:
     def _seleccionar_slot_destino(self):
         while True:
             print("\n--- Seleccione el Día y Período de Destino ---")
+            print("(Ingrese 'c' en cualquier momento para cancelar la selección)")
             try:
-                dia_idx = (
-                    int(
-                        input(
-                            f"Ingrese el número del día de destino (1-Lunes, ..., 5-Viernes): "
-                        )
-                    )
-                    - 1
+                dia_input = input(
+                    f"Ingrese el número del día de destino (1-Lunes, ..., 5-Viernes): "
                 )
+                if dia_input.lower() == "c":
+                    return None, None
+
+                dia_idx = int(dia_input) - 1
                 if not (0 <= dia_idx < len(DIAS)):
                     print("Número de día fuera de rango.")
                     continue
-                periodo_idx = (
-                    int(
-                        input(
-                            f"Ingrese el número del período de destino (1 a {PERIODOS_POR_DIA}): "
-                        )
-                    )
-                    - 1
+
+                periodo_input = input(
+                    f"Ingrese el número del período de destino (1 a {PERIODOS_POR_DIA}): "
                 )
+                if periodo_input.lower() == "c":
+                    return None, None
+
+                periodo_idx = int(periodo_input) - 1
                 if not (0 <= periodo_idx < PERIODOS_POR_DIA):
                     print("Número de período fuera de rango.")
                     continue
@@ -206,7 +222,7 @@ class EditorHorarios:
     def _mover_clase_recursivo(
         self, clase_info, dia_dest, periodo_dest, grupo, nivel=0
     ):
-        if nivel > 10:  # Límite de recursión para evitar bucles infinitos
+        if nivel > 15:
             print("¡Error! Demasiados desplazamientos recursivos. Operación cancelada.")
             return None
 
@@ -216,7 +232,7 @@ class EditorHorarios:
         materia = clase_info["materia"]
         aula = clase_info["aula"]
 
-        clase_dest_info = self._get_clase_info_global(dia_dest, periodo_dest, grupo)
+        clase_dest_info = self._get_clase_info(grupo, dia_dest, periodo_dest)
 
         if clase_dest_info is None:
             movimiento = self._mover_clase_simple(
@@ -229,18 +245,43 @@ class EditorHorarios:
                 materia,
                 aula,
             )
-            return [movimiento]  # Devuelve una lista con el único movimiento realizado
+            return [movimiento]
 
         else:
+            limpiar_pantalla()
             print("\n¡CONFLICTO DE HORARIO!")
-            print(f"El slot destino [{dia_dest}, P{periodo_dest+1}] está ocupado por:")
+            print(
+                f"Intentando mover '{materia}' de {maestro} a [{dia_dest}, P{periodo_dest+1}]"
+            )
+            print(f"Pero el slot ya está ocupado por:")
             print(f"  - Materia: {clase_dest_info['materia']}")
-            print(f"  - Grupo: {clase_dest_info['grupo']}")
+            print(f"  - Grupo:   {clase_dest_info['grupo']}")
             print(f"  - Maestro: {clase_dest_info['maestro']}")
-            print("\nDebe seleccionar un NUEVO DESTINO para la clase desplazada.")
 
-            input("Presione Enter para seleccionar nuevo destino...")
+            print("\n¿Qué desea hacer?")
+            print(
+                "[1] Mover la clase conflictiva a otro lugar para liberar el espacio."
+            )
+            print(
+                "[2] Cancelar TODA la operación (deshacer todos los cambios realizados)."
+            )
+
+            while True:
+                opcion = input("Seleccione una opción: ")
+                if opcion == "1":
+                    break
+                elif opcion == "2":
+                    return None
+                else:
+                    print("Opción no válida.")
+
+            print("\nDebe seleccionar un NUEVO DESTINO para la clase desplazada.")
+            input("Presione Enter para seleccionar el nuevo destino...")
+
             nuevo_dia, nuevo_periodo = self._seleccionar_slot_destino()
+
+            if nuevo_dia is None:
+                return None
 
             clase_dest_info["dia_origen"] = dia_dest
             clase_dest_info["periodo_origen"] = periodo_dest
@@ -249,43 +290,20 @@ class EditorHorarios:
                 clase_dest_info, nuevo_dia, nuevo_periodo, grupo, nivel + 1
             )
 
-            if movimientos_recursivos is not None:
-                movimiento_actual = self._mover_clase_simple(
-                    grupo,
-                    maestro,
-                    dia_orig,
-                    periodo_orig,
-                    dia_dest,
-                    periodo_dest,
-                    materia,
-                    aula,
-                )
-                return [movimiento_actual] + movimientos_recursivos
+            if movimientos_recursivos is None:
+                return None
 
-            return None  # La recursión falló, propagamos el fallo
-
-    def _get_clase_info_global(self, dia, periodo, grupo):
-        df_grupo = self.horarios_grupos.get(grupo)
-        if df_grupo is None or df_grupo.at[periodo, dia] == VALOR_VACIO:
-            return None  # El slot está vacío en el horario del grupo
-
-        clase_str = df_grupo.at[periodo, dia]
-        partes = str(clase_str).split("\n")
-        materia = partes[0]
-        aula = partes[1] if len(partes) > 1 else ""
-
-        maestro_encontrado = None
-        for maestro_nombre, df_maestro in self.horarios_maestros.items():
-            if df_maestro.at[periodo, dia] == grupo:
-                maestro_encontrado = maestro_nombre
-                break
-
-        return {
-            "maestro": maestro_encontrado,
-            "grupo": grupo,
-            "materia": materia,
-            "aula": aula,
-        }
+            movimiento_actual = self._mover_clase_simple(
+                grupo,
+                maestro,
+                dia_orig,
+                periodo_orig,
+                dia_dest,
+                periodo_dest,
+                materia,
+                aula,
+            )
+            return [movimiento_actual] + movimientos_recursivos
 
     def _mover_clase_simple(
         self,
@@ -298,6 +316,7 @@ class EditorHorarios:
         materia,
         aula,
     ):
+        """Mueve una clase y devuelve un registro del movimiento."""
         df_grupo = self.horarios_grupos[grupo]
         df_maestro = self.horarios_maestros[maestro]
 
@@ -305,7 +324,6 @@ class EditorHorarios:
 
         df_grupo.at[periodo_orig, dia_orig] = VALOR_VACIO
         df_maestro.at[periodo_orig, dia_orig] = VALOR_VACIO
-
         df_grupo.at[periodo_dest, dia_dest] = clase_valor
         df_maestro.at[periodo_dest, dia_dest] = grupo
 
@@ -320,64 +338,80 @@ class EditorHorarios:
         }
 
     def mover_clase_cascada(self):
-        maestro_seleccionado = self._seleccionar_maestro()
-        if not maestro_seleccionado:
-            return
+        self._crear_backup()
 
-        clase_origen = self._seleccionar_clase_origen(maestro_seleccionado)
-        if not clase_origen:
-            return
+        try:
+            maestro_seleccionado = self._seleccionar_maestro()
+            if not maestro_seleccionado:
+                self._restaurar_backup()
+                return
 
-        limpiar_pantalla()
-        print("--- CLASE A MOVER (VERIFICACIÓN) ---")
-        print(f"Grupo: {clase_origen['grupo']}")
-        print(f"Materia: {clase_origen['materia']}")
-        print(f"Aula: {clase_origen['aula']}")
-        print(f"Maestro: {clase_origen['maestro']}")
-        print(
-            f"Posición: [{clase_origen['dia_origen']}, P{clase_origen['periodo_origen'] + 1}]"
-        )
-        print(f"\n--- Horario del Grupo {clase_origen['grupo']} ---")
-        self._mostrar_horario(self.horarios_grupos[clase_origen["grupo"]])
-        input("\nPresione Enter para continuar y seleccionar el destino...")
+            clase_origen = self._seleccionar_clase_origen(maestro_seleccionado)
+            if not clase_origen:
+                self._restaurar_backup()
+                return
 
-        grupo = clase_origen["grupo"]
-        d2, p2 = self._seleccionar_slot_destino()
-        d1, p1 = clase_origen["dia_origen"], clase_origen["periodo_origen"]
-
-        if (d1, p1) == (d2, p2):
-            input(
-                "\nHa seleccionado el mismo slot. No se realiza ninguna acción. Presione Enter..."
+            limpiar_pantalla()
+            print("--- CLASE A MOVER (VERIFICACIÓN) ---")
+            print(f"Grupo: {clase_origen['grupo']}")
+            print(f"Materia: {clase_origen['materia']}")
+            print(f"Aula: {clase_origen['aula']}")
+            print(f"Maestro: {clase_origen['maestro']}")
+            print(
+                f"Posición: [{clase_origen['dia_origen']}, P{clase_origen['periodo_origen'] + 1}]"
             )
-            return
+            print(f"\n--- Horario del Grupo {clase_origen['grupo']} ---")
+            self._mostrar_horario(self.horarios_grupos[clase_origen["grupo"]])
+            input("\nPresione Enter para continuar y seleccionar el destino...")
 
-        movimientos_realizados = self._mover_clase_recursivo(
-            clase_origen, d2, p2, grupo
-        )
+            grupo = clase_origen["grupo"]
+            d2, p2 = self._seleccionar_slot_destino()
 
-        limpiar_pantalla()
-        if movimientos_realizados:
-            print("¡OPERACIÓN REALIZADA CON ÉXITO!\n")
-            print("=" * 15, "RESUMEN DE CAMBIOS", "=" * 15)
+            if d2 is None:
+                self._restaurar_backup()
+                input("\nPresione Enter para volver al menú principal...")
+                return
 
-            maestros_afectados = set()
+            d1, p1 = clase_origen["dia_origen"], clase_origen["periodo_origen"]
 
-            for i, mov in enumerate(movimientos_realizados):
-                clase_str = f"{mov['materia']} ({mov['grupo']})"
-                origen_str = f"[{mov['dia_origen']}, P{mov['periodo_origen']+1}]"
-                destino_str = f"[{mov['dia_destino']}, P{mov['periodo_destino']+1}]"
-                print(f"{i+1}. Se movió '{clase_str}' del Maestro '{mov['maestro']}'")
-                print(f"   Desde: {origen_str} -> Hacia: {destino_str}")
-                maestros_afectados.add(mov["maestro"])
+            if (d1, p1) == (d2, p2):
+                input(
+                    "\nHa seleccionado el mismo slot. No se realiza ninguna acción. Presione Enter..."
+                )
+                self._restaurar_backup()
+                return
 
-            print("\n" + "=" * 12, "HORARIOS ACTUALIZADOS", "=" * 12)
-            for maestro in sorted(list(maestros_afectados)):
-                print(f"\n--- Nuevo Horario de {maestro} ---")
-                self._mostrar_horario(self.horarios_maestros[maestro])
+            movimientos_realizados = self._mover_clase_recursivo(
+                clase_origen, d2, p2, grupo
+            )
 
-        else:
-            print("¡ERROR! No se pudo completar el movimiento en cascada.")
-            print("El horario no ha sido modificado.")
+            limpiar_pantalla()
+            if movimientos_realizados is None:
+                self._restaurar_backup()
+            else:
+                self.backup_horarios = None
+                print("¡OPERACIÓN REALIZADA CON ÉXITO!\n")
+                print("=" * 15, "RESUMEN DE CAMBIOS", "=" * 15)
+
+                maestros_afectados = set()
+                for i, mov in enumerate(movimientos_realizados):
+                    clase_str = f"{mov['materia']} ({mov['grupo']})"
+                    origen_str = f"[{mov['dia_origen']}, P{mov['periodo_origen']+1}]"
+                    destino_str = f"[{mov['dia_destino']}, P{mov['periodo_destino']+1}]"
+                    print(
+                        f"{i+1}. Se movió '{clase_str}' del Maestro '{mov['maestro']}'"
+                    )
+                    print(f"   Desde: {origen_str} -> Hacia: {destino_str}")
+                    maestros_afectados.add(mov["maestro"])
+
+                print("\n" + "=" * 12, "HORARIOS ACTUALIZADOS", "=" * 12)
+                for maestro in sorted(list(maestros_afectados)):
+                    print(f"\n--- Nuevo Horario de {maestro} ---")
+                    self._mostrar_horario(self.horarios_maestros[maestro])
+
+        except Exception as e:
+            print(f"\nOcurrió un error inesperado: {e}")
+            self._restaurar_backup()
 
         input("\nPresione Enter para volver al menú principal...")
 
@@ -392,6 +426,11 @@ class EditorHorarios:
         nombre_base = input(
             "\nIngrese el nombre para el nuevo archivo Excel (ej. horarios_modificados.xlsx): "
         )
+        if not nombre_base:
+            print("Nombre de archivo no válido. Operación cancelada.")
+            input("Presione Enter para continuar...")
+            return
+
         if not nombre_base.endswith(".xlsx"):
             nombre_base += ".xlsx"
         ruta_absoluta = os.path.abspath(nombre_base)
@@ -442,6 +481,14 @@ class EditorHorarios:
 
 
 if __name__ == "__main__":
-    archivo_a_editar = "horarios.xlsx"
+    archivo_a_editar = "horario_final.xlsx"
+    if not os.path.exists(archivo_a_editar):
+        print(
+            f"Error: El archivo '{archivo_a_editar}' no se encuentra en el directorio actual."
+        )
+        print(
+            "Por favor, asegúrate de que el archivo exista y vuelve a ejecutar el script."
+        )
+        exit()
     editor = EditorHorarios(archivo_a_editar)
     editor.run()
